@@ -1046,10 +1046,10 @@ __global__ void kernel5(const T *A, const T *B, T *C, int M, int N, int K)
             int col1 = 2 * tid4 + 1;  // 右列
 
             // 3. 取出4个累加结果（FP32）
-            float v0 = __uint_as_float(RC[i][j][0]); // 对应 (row0, col0)
-            float v1 = __uint_as_float(RC[i][j][1]); // 对应 (row0, col1)
-            float v2 = __uint_as_float(RC[i][j][2]); // 对应 (row1, col0)
-            float v3 = __uint_as_float(RC[i][j][3]); // 对应 (row1, col1)
+            float v0 = reinterpret_cast<float*>(&RC[i][j][0])[0]; // 对应 (row0, col0)
+            float v1 = reinterpret_cast<float*>(&RC[i][j][1])[0]; // 对应 (row0, col1)
+            float v2 = reinterpret_cast<float*>(&RC[i][j][2])[0]; // 对应 (row1, col0)
+            float v3 = reinterpret_cast<float*>(&RC[i][j][3])[0]; // 对应 (row1, col1)
 
             // 4. 折算成全局内存下标并越界保护
             int gidx0 = (tile_m0 + row0) * N + (tile_n0 + col0);
