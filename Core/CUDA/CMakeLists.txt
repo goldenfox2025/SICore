@@ -19,15 +19,17 @@ target_compile_features(gemm_test PRIVATE cxx_std_17)
 # e.g., "-gencode=arch=compute_86,code=sm_86"
 target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-gencode=arch=compute_89,code=sm_89>")
 
-# Add lineinfo for debugging support
-target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-lineinfo -O3>")
+# Add lineinfo for debugging support and relaxed constexpr for CUTE
+target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-lineinfo>")
+target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-O3>")
+target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>")
 
 # Link against the cuBLAS library
 target_link_libraries(gemm_test PRIVATE CUDA::cublas)
 
 # Add the include directory for CUTLASS
 # This path is relative to the `Core/cuda` directory where this CMakeLists.txt is located.
-target_include_directories(gemm_test PRIVATE ../../third_party/cutlass/include)
+target_include_directories(gemm_test PRIVATE ../../thrid_party/cutlass/cutlass/include)
 target_include_directories(gemm_test PRIVATE ../../Include)
 # Optional: If you need to link against CUTLASS libraries (if they exist)
 # target_link_libraries(gemm_test PRIVATE cutlass)

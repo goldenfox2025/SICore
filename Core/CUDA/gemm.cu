@@ -3,7 +3,7 @@
 #include <cfloat>
 #include <cstdio>
 #include <cstdlib>
-#include "ptx_common.h"
+#include "../../Include/ptx_common.h"
 #include <random>
 #include <vector>
 #include <iostream>
@@ -14,6 +14,9 @@
 #include <string>
 #include <map>
 #include "gemm_kernels.cuh"
+#include "gemm_cute.cuh"
+#include "gemm_cute2.cuh"
+#include "gemm_kernel6.cuh"
 // ===== Configuration Constants =====
 constexpr float ERROR_THRESHOLD_SMALL = 1e-3f;
 constexpr float ERROR_THRESHOLD_MEDIUM = 1e-2f;
@@ -659,6 +662,24 @@ int main()
         {
             printf("Kernel launch failed: %s\n", cudaGetErrorString(error));
         } });
+  bf16_suite.register_kernel("cute", [](const nv_bfloat16 *A, const nv_bfloat16 *B, nv_bfloat16 *C, int M, int N, int K)
+                             {
+        launch_simple_cute<nv_bfloat16>(const_cast<nv_bfloat16*>(A), const_cast<nv_bfloat16*>(B), C, M, N, K);
+        cudaDeviceSynchronize();
+        cudaError_t error = cudaGetLastError();
+        if (error != cudaSuccess)
+        {
+            printf("CUTE kernel launch failed: %s\n", cudaGetErrorString(error));
+        } });
+  bf16_suite.register_kernel("cute2", [](const nv_bfloat16 *A, const nv_bfloat16 *B, nv_bfloat16 *C, int M, int N, int K)
+                             {
+        launch_gemm_mma_stages_block_swizzle_tn_cute2<nv_bfloat16, 2, false>(const_cast<nv_bfloat16*>(A), const_cast<nv_bfloat16*>(B), C, M, N, K, 0);
+        cudaDeviceSynchronize();
+        cudaError_t error = cudaGetLastError();
+        if (error != cudaSuccess)
+        {
+            printf("CUTE2 kernel launch failed: %s\n", cudaGetErrorString(error));
+        } });
   bf16_suite.register_kernel("kernel5", [](const nv_bfloat16 *A, const nv_bfloat16 *B, nv_bfloat16 *C, int M, int N, int K)
                              {
                   constexpr int BM = 128;
@@ -681,8 +702,30 @@ int main()
         {
             printf("Kernel launch failed: %s\n", cudaGetErrorString(error));
         } });
+  bf16_suite.register_kernel("kernel6", [](const nv_bfloat16 *A, const nv_bfloat16 *B, nv_bfloat16 *C, int M, int N, int K)
+                             {
+                  constexpr int BM = 128;
+                  constexpr int BN = 64;
+                  constexpr int BK = 16;
+                  constexpr int WMMA_M = 16;
+                  constexpr int WMMA_N = 16;  // 16x16x16 MMA
+                  constexpr int WMMA_K = 16;
+                  constexpr int K_STAGE = 2;
+                  constexpr int WARP_TILE_M = 4;
+                  constexpr int WARP_TILE_N = 2;  // Adjusted for 16x16 N dimension
+                  constexpr int WAPR_NUM = BM/WMMA_M*BN/WMMA_N /WARP_TILE_M/WARP_TILE_N;
+        dim3 block_size(WAPR_NUM*32);
+        dim3 grid_size((M + BM - 1) / BM,(N + BN - 1) / BN);
 
-  bf16_suite.run_single_test(2048, 2048, 2048, "kernel5");
+        kernel6<nv_bfloat16,BM,BN,BK,WMMA_M,WMMA_N,WMMA_K,WAPR_NUM,K_STAGE,WARP_TILE_M,WARP_TILE_N><<<grid_size, block_size>>>(A, B, C, M, N, K); 
+        cudaDeviceSynchronize();
+        cudaError_t error = cudaGetLastError();
+        if (error != cudaSuccess)
+        {
+            printf("Kernel6 launch failed: %s\n", cudaGetErrorString(error));
+        } });
+
+  bf16_suite.run_single_test(2048, 2048, 2048, "cute2");
   // bf16_suite.run_single_test(1024, 1024, 1024, "kernel2");
   bf16_suite.run_benchmark_suite(test_sizes);
 
