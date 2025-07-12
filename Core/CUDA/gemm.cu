@@ -661,15 +661,15 @@ int main()
         } });
   bf16_suite.register_kernel("kernel5", [](const nv_bfloat16 *A, const nv_bfloat16 *B, nv_bfloat16 *C, int M, int N, int K)
                              {
-                  constexpr int BM = 64;
-                  constexpr int BN = 128;
+                  constexpr int BM = 128;
+                  constexpr int BN = 64;
                   constexpr int BK = 16;
                   constexpr int WMMA_M = 16;
                   constexpr int WMMA_N = 8;
                   constexpr int WMMA_K = 16;
                   constexpr int K_STAGE = 2;
-                  constexpr int WARP_TILE_M = 2;
-                  constexpr int WARP_TILE_N = 2;
+                  constexpr int WARP_TILE_M = 4;
+                  constexpr int WARP_TILE_N = 4;
                   constexpr int WAPR_NUM = BM/WMMA_M*BN/WMMA_N /WARP_TILE_M/WARP_TILE_N;
         dim3 block_size(WAPR_NUM*32);
         dim3 grid_size((M + BM - 1) / BM,(N + BN - 1) / BN);
@@ -682,7 +682,7 @@ int main()
             printf("Kernel launch failed: %s\n", cudaGetErrorString(error));
         } });
 
-  bf16_suite.run_single_test(256, 256, 256, "kernel5");
+  bf16_suite.run_single_test(2048, 2048, 2048, "kernel5");
   // bf16_suite.run_single_test(1024, 1024, 1024, "kernel2");
   bf16_suite.run_benchmark_suite(test_sizes);
 

@@ -17,10 +17,10 @@ target_compile_features(gemm_test PRIVATE cxx_std_17)
 # GPU architecture. SM_80 (Ampere) is the minimum for cp.async.
 # You can add other architectures like SM_86, SM_89 (Ada), SM_90 (Hopper)
 # e.g., "-gencode=arch=compute_86,code=sm_86"
-target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-gencode=arch=compute_80,code=sm_80>")
+target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-gencode=arch=compute_89,code=sm_89>")
 
 # Add lineinfo for debugging support
-target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-lineinfo>")
+target_compile_options(gemm_test PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-lineinfo -O3>")
 
 # Link against the cuBLAS library
 target_link_libraries(gemm_test PRIVATE CUDA::cublas)
@@ -35,7 +35,7 @@ target_include_directories(gemm_test PRIVATE ../../Include)
 # Set CUDA specific properties
 set_target_properties(gemm_test PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
-    CUDA_ARCHITECTURES 80
+    CUDA_ARCHITECTURES 89
 )
 
 # Enable verbose output for debugging (optional)

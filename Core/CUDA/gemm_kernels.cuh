@@ -818,10 +818,7 @@ __global__ void kernel5(const T *A, const T *B, T *C, int M, int N, int K)
                 uint32_t load_smem_a_ptr = smem_a_base_ptr + (swizzled_idx + k_load_stage * SA_SIZE) * sizeof(T);
                 CP_ASYNC_CG(load_smem_a_ptr, &A[load_gmem_a_addr], 16);
             }
-            else
-            {
-                printf("CP_ASYNC_CG expected to be 16 bytes aligned\n");
-            }
+           
         }
         
         // 加载B矩阵数据 - 应用swizzle
@@ -841,10 +838,7 @@ __global__ void kernel5(const T *A, const T *B, T *C, int M, int N, int K)
                 uint32_t load_smem_b_ptr = smem_b_base_ptr + (swizzled_idx + k_load_stage * SB_SIZE) * sizeof(T);
                 CP_ASYNC_CG(load_smem_b_ptr, &B[load_gmem_b_addr], 16);
             }
-            else
-            {
-                printf("CP_ASYNC_CG expected to be 16 bytes aligned\n");
-            }
+          
         }
         CP_ASYNC_COMMIT_GROUP();
     }
@@ -877,10 +871,7 @@ __global__ void kernel5(const T *A, const T *B, T *C, int M, int N, int K)
                 uint32_t load_smem_a_ptr = smem_a_base_ptr + (swizzled_idx + smem_sel_next * SA_SIZE) * sizeof(T);
                 CP_ASYNC_CG(load_smem_a_ptr, &A[load_gmem_a_addr], 16);
             }
-            else
-            {
-                printf("CP_ASYNC_CG expected to be 16 bytes aligned\n");
-            }
+    
         }
         
         // 加载B矩阵数据 - 应用swizzle
@@ -900,10 +891,7 @@ __global__ void kernel5(const T *A, const T *B, T *C, int M, int N, int K)
                 uint32_t load_smem_b_ptr = smem_b_base_ptr + (swizzled_idx + smem_sel_next * SB_SIZE) * sizeof(T);
                 CP_ASYNC_CG(load_smem_b_ptr, &B[load_gmem_b_addr], 16);
             }
-            else
-            {
-                printf("CP_ASYNC_CG expected to be 16 bytes aligned\n");
-            }
+            
         }
         CP_ASYNC_COMMIT_GROUP();
 
